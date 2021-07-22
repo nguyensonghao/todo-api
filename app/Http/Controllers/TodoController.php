@@ -84,6 +84,11 @@ class TodoController extends Controller
 
         $todo->status = $payload['status'];
         if ($todo->save()) {
+            $this->_send_noti(
+                "Todo status is updated!",
+                auth()->user()->name . " just have updated status of todo: " . $todo->title
+            );
+
             return response()->json([
                 'data' => $todo
             ], 200);
@@ -115,5 +120,31 @@ class TodoController extends Controller
                 'message' => 'Not found this todo.'
             ], 400);
         }
+    }
+
+    private function _send_noti($title, $body) {
+        $SERVER_API_KEY = 'AAAAOrk2Cog:APA91bEQj9mfwv2EaZy2s_Q9-wmRhPLw_wJVpUz-4-4pagYe-TikItlBEFR1gJTLkUyYtIyJPMMiTyAXCFMMhY4H3lDTBHQ0cNB5XpcgRUXM6MfaSwlKHwvxHDGHAsz4LW_8nEPWCVpe';
+        $data = [
+            "to"  => '/topics/all',
+            "notification" => [
+                "title" => $title,
+                "body" => $body,
+            ]
+        ];
+
+        $dataString = json_encode($data);
+        $headers = [
+            'Authorization: key=' . $SERVER_API_KEY,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
+        return curl_exec($ch);
     }
 }
