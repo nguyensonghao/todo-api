@@ -19,7 +19,9 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return Response::badRequest($validator->errors());
+            return response()->json([
+                'message' => $validator->errors()
+            ], 400);
         }
 
         $payload = $request->all();
